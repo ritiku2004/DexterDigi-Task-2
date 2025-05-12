@@ -5,12 +5,13 @@ import Swal from 'sweetalert2'
 import { toast } from 'react-toastify'
 
 export default function OTPVerify({ onAuth }) {
-  const { state } = useLocation()    // { email, otp }
+  const { state } = useLocation()  // { email, otp }
   const navigate = useNavigate()
   const [otpInput, setOtpInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [timer, setTimer] = useState(60)
   const [resending, setResending] = useState(false)
+  const [displayOtp, setDisplayOtp] = useState(state?.otp || '')
 
   useEffect(() => {
     if (timer > 0) {
@@ -19,17 +20,26 @@ export default function OTPVerify({ onAuth }) {
     }
   }, [timer])
 
+  if (!state?.email) {
+    navigate('/login', { replace: true })
+    return null
+  }
+
   const handleVerify = async e => {
     e.preventDefault()
     setLoading(true)
     try {
-      await axios.post('http://localhost:5000/api/auth/verify-otp', { email: state.email, otp: otpInput })
-      await Swal.fire('Verified!', 'Your account is now active.', 'success')
-      localStorage.setItem('auth', 'true')
+      const { data } = await axios.post(
+        'http://localhost:5000/api/auth/verify-otp',
+        { email: state.email, otp: otpInput }
+      )
+      localStorage.setItem('accessToken', data.accessToken)
+      localStorage.setItem('rememberToken', data.rememberToken)
+      Swal.fire('Verified!', 'Your account is now active.', 'success')
       onAuth()
       navigate('/dashboard')
-    } catch {
-      toast.error('Invalid OTP. Please try again.')
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Invalid OTP')
     } finally {
       setLoading(false)
     }
@@ -38,12 +48,15 @@ export default function OTPVerify({ onAuth }) {
   const handleResend = async () => {
     setResending(true)
     try {
-      const { data } = await axios.post('http://localhost:5000/api/auth/resend-otp', { email: state.email })
+      const { data } = await axios.post(
+        'http://localhost:5000/api/auth/resend-otp',
+        { email: state.email }
+      )
       toast.success('OTP resent!')
-      state.otp = data.otp
       setTimer(60)
+      setDisplayOtp(data.otp || '')
     } catch {
-      toast.error('Resend failed.')
+      toast.error('Failed to resend.')
     } finally {
       setResending(false)
     }
@@ -54,7 +67,7 @@ export default function OTPVerify({ onAuth }) {
       <h2 className="text-2xl font-bold mb-4 text-center">Verify Your Account</h2>
       <p className="text-center mb-6">
         <span className="font-medium">Your OTP:</span>{' '}
-        <span className="text-indigo-600 font-semibold">{state.otp}</span>
+        <span className="text-indigo-600 font-semibold">{displayOtp}</span>
       </p>
       <form onSubmit={handleVerify} className="space-y-4">
         <input
@@ -74,40 +87,30 @@ export default function OTPVerify({ onAuth }) {
             text-white transition
           `}
         >
-          {loading && (
-            <span className="mr-2 w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-          )}
+          {loading && <span className="mr-2 w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
           {loading ? 'Verifying...' : 'Verify OTP'}
         </button>
       </form>
-
       <div className="flex items-center justify-center w-full mt-6">
-  {timer > 0 ? (
-    <span className="text-center text-sm">
-      Resend OTP in <span className="font-mono">{timer}s</span>
-    </span>
-  ) : (
-    <button
-      onClick={handleResend}
-      disabled={resending}
-      className={`
-        mx-auto                  /* centers the button within flex */
-        flex items-center justify-center
-        px-4 py-2                /* slightly less tall for aesthetics */
-        rounded-lg
-        ${resending
-          ? 'bg-gray-400 cursor-not-allowed'
-          : 'bg-green-500 hover:bg-green-600'}
-        text-white transition
-      `}
-    >
-      {resending && (
-        <span className="mr-2 w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-      )}
-      {resending ? 'Resending...' : 'Resend OTP'}
-    </button>
-  )}
-</div>
+        {timer > 0 ? (
+          <span className="text-sm">
+            Resend OTP in <span className="font-mono">{timer}s</span>
+          </span>
+        ) : (
+          <button
+            onClick={handleResend}
+            disabled={resending}
+            className={`
+              flex items-center justify-center px-4 py-2 rounded-lg
+              ${resending ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600'}
+              text-white transition
+            `}
+          >
+            {resending && <span className="mr-2 w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
+            {resending ? 'Resending...' : 'Resend OTP'}
+          </button>
+        )}
+      </div>
     </div>
   )
 }

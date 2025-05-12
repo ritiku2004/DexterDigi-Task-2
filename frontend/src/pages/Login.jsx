@@ -4,7 +4,7 @@ import axios from 'axios'
 import Swal from 'sweetalert2'
 import { toast } from 'react-toastify'
 
-export default function Login({ onAuth }) {
+export default function Login() {
   const [form, setForm] = useState({ email: '', password: '' })
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
@@ -16,13 +16,15 @@ export default function Login({ onAuth }) {
     e.preventDefault()
     setLoading(true)
     try {
-      await axios.post('http://localhost:5000/api/auth/login', form)
-      await Swal.fire('Logged In!', 'Welcome back 😊', 'success')
-      localStorage.setItem('auth', 'true')
-      onAuth()
-      navigate('/dashboard')
+      const { data } = await axios.post(
+        'http://localhost:5000/api/auth/login',
+        form
+      )
+      await Swal.fire('OTP Sent!', 'Check your email for the OTP.', 'success')
+      // pass email and otp
+      navigate('/otp-verify', { state: { email: data.email, otp: data.otp } })
     } catch (err) {
-      toast.error(err.response?.data || 'Login failed')
+      toast.error(err.response?.data?.message || 'Login failed')
     } finally {
       setLoading(false)
     }
@@ -60,7 +62,7 @@ export default function Login({ onAuth }) {
           {loading && (
             <span className="mr-2 w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
           )}
-          {loading ? 'Logging In...' : 'Log In'}
+          {loading ? 'Sending OTP...' : 'Send OTP'}
         </button>
       </form>
     </div>

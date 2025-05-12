@@ -16,11 +16,19 @@ export default function Signup() {
     e.preventDefault()
     setLoading(true)
     try {
-      const { data } = await axios.post('http://localhost:5000/api/auth/register', form)
-      await Swal.fire('OTP Sent!', 'Please enter the OTP to verify your account.', 'success')
+      const { data } = await axios.post(
+        'http://localhost:5000/api/auth/register',
+        form
+      )
+      await Swal.fire(
+        'OTP Sent!',
+        'Please enter the OTP to verify your account.',
+        'success'
+      )
+      // pass email and otp to OTP page for display
       navigate('/otp-verify', { state: { email: data.email, otp: data.otp } })
     } catch (err) {
-      toast.error(err.response?.data || 'Signup failed')
+      toast.error(err.response?.data?.message || 'Signup failed')
     } finally {
       setLoading(false)
     }
@@ -30,7 +38,7 @@ export default function Signup() {
     <div className="max-w-md mx-auto mt-16 p-6 bg-white rounded-2xl shadow-lg transition-transform hover:-translate-y-1">
       <h2 className="text-2xl font-semibold mb-6 text-center">Sign Up</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
-        {['username','email','password'].map(name => (
+        {['username', 'email', 'password'].map(name => (
           <input
             key={name}
             name={name}
