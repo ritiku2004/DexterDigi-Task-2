@@ -35,6 +35,7 @@ export default function OTPVerify({ onAuth }) {
       )
       localStorage.setItem('accessToken', data.accessToken)
       localStorage.setItem('rememberToken', data.rememberToken)
+      localStorage.setItem('authEmail', state.email)
       Swal.fire('Verified!', 'Your account is now active.', 'success')
       onAuth()
       navigate('/dashboard')

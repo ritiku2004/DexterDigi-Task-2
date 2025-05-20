@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import { ToastContainer } from 'react-toastify'
 import axios from 'axios'
 
@@ -11,8 +11,9 @@ import Dashboard from './pages/Dashboard'
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true) // <- loading state
+  const navigate = useNavigate()
 
-  // try auto-login if we have a rememberToken
   useEffect(() => {
     const tryAuto = async () => {
       const rm = localStorage.getItem('rememberToken')
@@ -24,19 +25,43 @@ export default function App() {
             { headers: { rememberToken: rm } }
           )
           localStorage.setItem('accessToken', data.accessToken)
+          localStorage.setItem('authEmail', data.email) // optional
           setIsLoggedIn(true)
-          return
         } catch {
           localStorage.clear()
         }
+      } else if (at) {
+        setIsLoggedIn(true)
       }
-      if (at) setIsLoggedIn(true)
+      setIsCheckingAuth(false) // <- done checking
     }
     tryAuto()
   }, [])
 
   const handleAuth = () => setIsLoggedIn(true)
-  const handleLogout = () => setIsLoggedIn(false)
+
+  const handleLogout = async () => {
+    const token = localStorage.getItem('accessToken')
+    if (token) {
+      try {
+        await axios.post(
+          'http://localhost:5000/api/auth/logout',
+          {},
+          { headers: { Authorization: `Bearer ${token}` } }
+        )
+      } catch (err) {
+        console.error('Logout request failed:', err)
+      }
+    }
+    localStorage.clear()
+    setIsLoggedIn(false)
+    navigate('/', { replace: true })
+  }
+
+  const email = localStorage.getItem('authEmail')
+
+  // ⛔ wait until token check finishes before rendering anything
+  if (isCheckingAuth) return <p>Loading...</p>
 
   return (
     <>
@@ -50,7 +75,7 @@ export default function App() {
           path="/dashboard"
           element={
             isLoggedIn ? (
-              <Dashboard onLogout={handleLogout} />
+              <Dashboard email={email} onLogout={handleLogout} />
             ) : (
               <Navigate to="/" replace />
             )
