@@ -6,6 +6,7 @@ const cors = require('cors');
 const jwt = require('jsonwebtoken');
 
 const authRoutes = require('./routes/auth');
+const sidebarmenusRoute = require('./routes/sidebarmenus');
 
 const app = express();
 app.use(cors());
@@ -24,24 +25,7 @@ mongoose
 // ——— Auth Routes ———
 app.use('/api/auth', authRoutes);
 
-// ——— Protected Route ———
-app.get('/api/dashboard', (req, res) => {
-  const authHeader = req.headers.authorization || '';
-  const token = authHeader.startsWith('Bearer ')
-    ? authHeader.slice(7)
-    : null;
-
-  if (!token) {
-    return res.status(401).json({ message: 'Unauthorized: No token provided' });
-  }
-
-  try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET || 'replace-with-your-secret');
-    return res.json({ message: `Welcome, user ${payload.userId}!` });
-  } catch (err) {
-    return res.status(401).json({ message: 'Unauthorized: Invalid or expired token' });
-  }
-});
+app.use('/api/sidebarmenus', sidebarmenusRoute);
 
 // ——— Start Server ———
 const PORT = process.env.PORT || 5000;

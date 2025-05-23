@@ -60,7 +60,7 @@ export default function App() {
 
   const email = localStorage.getItem('authEmail')
 
-  // ⛔ wait until token check finishes before rendering anything
+  //  wait until token check finishes before rendering anything
   if (isCheckingAuth) return <p>Loading...</p>
 
   return (
