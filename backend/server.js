@@ -24,8 +24,10 @@ mongoose
 
 // ——— Auth Routes ———
 app.use('/api/auth', authRoutes);
-
 app.use('/api/sidebarmenus', sidebarmenusRoute);
+app.use('/api/roles', require('./routes/roles'));
+app.use('/api/permissions', require('./routes/permissions'));
+
 
 // ——— Start Server ———
 const PORT = process.env.PORT || 5000;

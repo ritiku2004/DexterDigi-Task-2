@@ -8,6 +8,7 @@ import Signup from './pages/Signup'
 import OTPVerify from './pages/OTPVerify'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
+import EmployeeRoles from './pages/EmployeeRoles';
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -79,6 +80,14 @@ export default function App() {
             ) : (
               <Navigate to="/" replace />
             )
+          }
+        />
+        <Route
+          path="/roles/create"
+          element={
+            isLoggedIn
+              ? <EmployeeRoles />
+              : <Navigate to="/" replace />
           }
         />
         <Route path="*" element={<Navigate to="/" replace />} />

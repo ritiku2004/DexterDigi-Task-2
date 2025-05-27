@@ -14,7 +14,6 @@ export default function Sidebar({ collapsed }) {
         // Normalize into an array no matter what shape comes back
         let data = res.data;
         let list = [];
-	console.log(data);
         if (Array.isArray(data)) {
           list = data;
         } else if (Array.isArray(data.data)) {
@@ -164,7 +163,7 @@ export default function Sidebar({ collapsed }) {
             return (
               <NavLink
                 key={item._id}
-                to={`/dashboard/${item.to}`}
+                to={`${item.to}`}
                 className={({ isActive }) =>
                   `flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-100 text-sm transition ${
                     isActive ? 'bg-gray-100 font-semibold text-gray-900' : 'text-gray-700'
